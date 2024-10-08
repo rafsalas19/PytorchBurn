@@ -34,10 +34,11 @@ class PytorchBurn:
 
     def compute_stress_test(self, local_iterations=20, warmup=5):
         #print("------Start Compute stress test------")
+        torch.cuda.set_device(self.device)
         first_tensor = torch.randn(self.compute_tensor_size, device=self.device, dtype=self.dtype)
         second_tensor = torch.randn(self.compute_tensor_size, device=self.device, dtype=self.dtype)
-
-         #matmul benchmark definition
+        
+        # matmul benchmark definition
         bmark = benchmark.Timer(
             stmt='torch.matmul(first_tensor, second_tensor)',
             setup='import torch',
@@ -66,7 +67,7 @@ class PytorchBurn:
 
     def memory_stress_test(self, num_allocations=100):
         #print("------Start Memory stress test------")
-
+        torch.cuda.set_device(self.device)
         element_size_bytes = torch.finfo(self.dtype).bits // 8
         dim = self.compute_tensor_size[0]
         memory_per_allocation = element_size_bytes * dim**2 / 1e9
@@ -115,7 +116,7 @@ class PytorchBurn:
 
 def run_benchmark(gpu_spec, precision_selection=1, test_selection=1, iterations=10, device=0,  warmup=5):
     mat_dim = [ 20000, 20000, 10000, 5000 ]
-
+    print(f"device: {device}")
     # determine tensor size
     comp_tensor_size = (mat_dim[precision_selection - 1], mat_dim[precision_selection - 1])
     # determine precision
@@ -196,14 +197,14 @@ if __name__ == '__main__':
         '-w',
         '--warmup',
         type=int,
-        default=5,
+        default=1,
         help='Warm up iterations. Default: 5')
     
     parser.add_argument(
         '-i',
         '--iterations',
         type=int,
-        default=20,
+        default=5,
         help='Iterations of the benchmark. Default: 20')
 
     parser.add_argument(
